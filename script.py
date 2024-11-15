@@ -30,12 +30,12 @@ from typing import Iterator
 def log(message: str) -> None:
     print(f"[{datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] {message}")
 
-FREQUENCY_LIST: list[float] = [919.5, 920.0, 920.5, 921.0, 921.5, 922.0, 922.5]
+FREQUENCY_LIST: list[float] = [919.5,919.6,919.7,919.8,919.9, 920.0,920.1,920.2,920.3,920.4, 920.5,920.6,920.7,920.8,920.9, 921.0,921.1,921.2,921.3,921.4, 921.5,921.6,921.7,921.8,921.9, 922.0,922.1,922.2,922.3,922.4, 922.5]
 
 PORTS: list[str] = SerialTransport.scan()
 log(f"Ports: {PORTS}")
 
-PORT: str = SerialTransport.scan()[0]
+PORT: str = SerialTransport.scan()[1]
 log(f"Port: {PORT}")
 
 TRANSPORT: SerialTransport = SerialTransport(
@@ -118,12 +118,13 @@ try:
                 for res in response:
                     print()
 
-                    start_time = time.time()
+                    
 
                     if res is None:
                         continue
 
                     if res.status == InventoryStatus.SUCCESS and res.tag:
+                        start_time = time.time()
                         rssi_value: int = int(
                             str(calculate_rssi(res.tag.rssi))[0:3]
                         )
@@ -133,18 +134,14 @@ try:
                         print(f"Frequency {frequency_index} RSSI {count}: {nilai_rssi} dBm")
 
                         rssi_list.append(nilai_rssi)
+                        end_time = time.time()
+                        response_time = (end_time - start_time) * 1000000 
+                        print(f"Response Time: {response_time} ms")
+                        response_time_list.append(response_time)
 
                         count += 1
                         if count > 10:
                             break
-
-                    end_time = time.time()
-                    response_time = (end_time - start_time) * 1000000  # Convert to milliseconds
-
-                    
-                    print(f"Response Time: {response_time} ms")
-
-                    response_time_list.append(response_time)
 
                     if (
                         res.status == InventoryStatus.NO_COUNT_LABEL
@@ -178,11 +175,13 @@ try:
             
             print(f"Average Response Time: {average_response_time} ms")
 
-            jarak = 1
+            jarak = 0
             # Write average RSSI and response time to the CSV file
-            csv_writer.writerow([nilai_rssi, response_time,jarak])
+            csv_writer.writerow([average_rssi, average_response_time,jarak])
+            print(f"Jarak Sebenarnya : {jarak}")
 
             print()
+
 
         log("RSSI Summary Of All Frequencies")
         for average_rssi_index, average_rssi_value in enumerate(
@@ -191,16 +190,7 @@ try:
             print(
                 f"Frequency {average_rssi_index} ({FREQUENCY_LIST[average_rssi_index-1]} MHz) Average RSSI: {average_rssi_value} dBm"
             )
-
-        final_rssi: float = sum(average_rssi_list) / len(average_rssi_list)
-        
-        print(f"Final RSSI: {final_rssi} dBm")
-
-        print()
-
-        log("Finished")
-
-        print()
+        jarak += 0.5
 
         # Close the CSV file after writing all data
         csv_file.close()
