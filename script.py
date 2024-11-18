@@ -50,14 +50,15 @@ try:
     while True:
         input("Press Enter to start reading RSSI...")
         log("Starting")
-
+        
         # Create a CSV file to store the data
-        csv_file = open('Jarak_dataset.csv', 'w', newline='')
+        csv_file = open('Jarak_dataset.csv', 'a', newline='')
         csv_writer = csv.writer(csv_file)
-        csv_writer.writerow([ 'RSSI (dBm)', 'Response Time (µs)','Jarak (M)'])  # Write header row
-
+        csv_writer.writerow([ 'RSSI', 'Response_Time','Jarak','Frekuensi'])  # Write header row
+        
         average_rssi_list: list[float] = []
         for frequency_index, frequency_value in enumerate(FREQUENCY_LIST, start=1):
+            
             log(f"Frequency {frequency_index}: {frequency_value} MHz")
             time.sleep(0.5)
 
@@ -100,7 +101,7 @@ try:
                     inventory_interval=100,
                 )
             )
-
+            start_time = time.time()
             response: Iterator[ResponseInventory] | None = READER.start_inventory(
                 work_mode=WorkMode.ANSWER_MODE,
                 answer_mode_inventory_parameter=(
@@ -110,35 +111,37 @@ try:
                     )
                 ),
             )
+            # selesai = time.time() - start_time
+            
+            
+            
+
 
             count: int = 1
             rssi_list: list[int] = []
             response_time_list: list[float] = []
+            
             try:
+                
+                awal = time.time()
                 for res in response:
                     print()
-
+                    
                     
 
                     if res is None:
                         continue
 
                     if res.status == InventoryStatus.SUCCESS and res.tag:
-                        start_time = time.time()
+                        
                         rssi_value: int = int(
                             str(calculate_rssi(res.tag.rssi))[0:3]
                         )
                         nilai_rssi = int(rssi_value)
 
-                        
-                        print(f"Frequency {frequency_index} RSSI {count}: {nilai_rssi} dBm")
-
+                        print(f"Nilai RSSI: {nilai_rssi}")
                         rssi_list.append(nilai_rssi)
-                        end_time = time.time()
-                        response_time = (end_time - start_time) * 1000000 
-                        print(f"Response Time: {response_time} ms")
-                        response_time_list.append(response_time)
-
+                        
                         count += 1
                         if count > 10:
                             break
@@ -148,14 +151,27 @@ try:
                         and READER.work_mode == WorkMode.ANSWER_MODE
                     ):
                         break
-
+                    akhir = time.time() - awal
+                    # selesai = time.time() - start_time
+                    # response_time = (selesai - akhir) * 1000000
+                    # print(f"Waktu Tempuh: {selesai}")
+                    print(f"Waktu Tempuh2: {akhir}")
+                    # print(f"Waktu Tempuh: {response_time}")
+                    
                     time.sleep(0.1)
-
+                
+                
             except:
                 
                 print(f"Frequency {frequency_index} RSSI {count}: Read Error")
-
+            # akhir_waktu = time.time()
+            
             READER.stop_inventory()
+            selesai = time.time() - start_time
+            response_time = (selesai - akhir) * 1000000
+            print(f"Waktu Tempuh: {selesai}")
+            print(f"Waktu Tempuh: {response_time}")
+            response_time_list.append(response_time)
 
             print()
             log(f"Frequency {frequency_index}: {frequency_value} MHz")
